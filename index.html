@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link href="css/style.css" rel="stylesheet" type="text/css">
+        <script src="js/jquery-2.1.0.js"></script>
+        <script src="js/remoteaudioplayer.js"></script>
+        <script src="js/canvasgrapher.js"></script>
+        <script>
+            $(document).ready(function(){
+                var fftDraw = function(analyzer){
+                    // Convert array to array of length 20
+                    var data = new Uint8Array(2048);
+                    analyzer.getByteFrequencyData(data);
+
+                    var num_bars = 30;
+                    var bin_size = Math.floor(750 / num_bars);
+                    var shortArray = [];
+                    for (var i=0; i < num_bars; ++i) {
+                        var sum = 0;
+                        for (var j=0; j < bin_size; ++j) {
+                            sum += data[(i * bin_size) + j];
+                        }
+                        var average = sum / bin_size;
+                        shortArray.push(average);
+                    }
+
+                    var canvasElement = $('#canvas')[0];
+                    var grapher = new CanvasGrapher(canvasElement);
+                    grapher.graph(shortArray);
+                };
+
+                function fftPrepare(ap){
+                    source = ap.getSource();
+                    source.buffer = ap.buffer;
+                    source.connect(ap.context.destination);
+                    var analyzer = source.context.createAnalyser();
+                    analyzer.fftsize = 2048;
+                    source.connect(analyzer);
+                    analyzer.connect(ap.context.destination)
+                    source.noteOn(0);
+
+                    setInterval(fftDraw, 50, analyzer);
+                }
+
+                function initialize(){
+                    var audioCtx = new webkitAudioContext();
+                    var audioPlayer = new RemoteAudioPlayer(
+                        audioCtx, 'media/danza_kuduro.mp3', fftPrepare
+                    );
+                    audioPlayer.source.connect(audioCtx.destination);
+                    audioPlayer.load();
+                };
+
+                initialize();
+            });
+        </script>
+    </head>
+    <body>
+        <div id="canvas-container">
+            <h1>Color Box</h1>
+            <canvas id="canvas"></canvas>
+        </div>
+    </body>
+</html>
