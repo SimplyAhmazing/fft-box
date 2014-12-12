@@ -12,21 +12,31 @@
                     var data = new Uint8Array(2048);
                     analyzer.getByteFrequencyData(data);
 
-                    var num_bars = 30;
-                    var bin_size = Math.floor(750 / num_bars);
+                    // var num_bars = 30;
+                    // var bin_size = Math.floor(750 / num_bars);
+                    // var shortArray = [];
+                    // for (var i=0; i < num_bars; ++i) {
+                    //     var sum = 0;
+                    //     for (var j=0; j < bin_size; ++j) {
+                    //         sum += data[(i * bin_size) + j];
+                    //     }
+                    //     var average = sum / bin_size;
+                    //     shortArray.push(average);
+                    // }
+
                     var shortArray = [];
-                    for (var i=0; i < num_bars; ++i) {
-                        var sum = 0;
-                        for (var j=0; j < bin_size; ++j) {
-                            sum += data[(i * bin_size) + j];
-                        }
-                        var average = sum / bin_size;
-                        shortArray.push(average);
+                    for (var i = 0; i < 750; i++){
+                        shortArray[i] = data[i];
                     }
 
-                    var canvasElement = $('#canvas')[0];
+                    var canvasElement = $('.canvas')[0];
+
                     var grapher = new CanvasGrapher(canvasElement);
                     grapher.graph(shortArray);
+
+                    var canvasElement = $('.canvas-colorboxes')[0];
+                    var colorBoxGrapher = new CanvasGrapher(canvasElement);
+                    colorBoxGrapher.graphColoredBoxes(shortArray, 34, 22);
                 };
 
                 function fftPrepare(ap){
@@ -37,15 +47,18 @@
                     analyzer.fftsize = 2048;
                     source.connect(analyzer);
                     analyzer.connect(ap.context.destination)
-                    source.noteOn(0);
+                    source.start(0);
 
-                    setInterval(fftDraw, 50, analyzer);
+                    setInterval(fftDraw, 30, analyzer);
+                    // window.requestAnimationFrame(fftDraw, 30, analyzer);
                 }
 
                 function initialize(){
-                    var audioCtx = new webkitAudioContext();
-                    var audioPlayer = new RemoteAudioPlayer(
-                        audioCtx, 'media/danza_kuduro.mp3', fftPrepare
+                    audioCtx = new webkitAudioContext();
+                    audioPlayer = new RemoteAudioPlayer(
+                        audioCtx, 'media/danza_kuduro.mp3'// , fftPrepare
+                        // audioCtx, 'media/armin_van_buren.mp3', fftPrepare
+                        // audioCtx, 'media/stereo_love.mp3', fftPrepare
                     );
                     audioPlayer.source.connect(audioCtx.destination);
                     audioPlayer.load();
@@ -57,8 +70,10 @@
     </head>
     <body>
         <div id="canvas-container">
-            <h1>Color Box</h1>
-            <canvas id="canvas"></canvas>
+            <h2>Regular Frequency Analyzer</h2>
+            <canvas class="canvas"></canvas>
+            <h2>Colored Frequency Visualizer</h2>
+            <canvas class="canvas canvas-colorboxes"></canvas>
         </div>
     </body>
 </html>
